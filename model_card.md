@@ -1,123 +1,166 @@
 # Model Card: Mood Machine
 
-This model card is for the Mood Machine project, which includes **two** versions of a mood classifier:
+This model card documents the Mood Machine project, which includes two mood classifiers:
 
-1. A **rule based model** implemented in `mood_analyzer.py`
-2. A **machine learning model** implemented in `ml_experiments.py` using scikit learn
-
-You may complete this model card for whichever version you used, or compare both if you explored them.
+1. Rule based model in mood_analyzer.py
+2. Machine learning model in ml_experiments.py
 
 ## 1. Model Overview
 
 **Model type:**  
-Describe whether you used the rule based model, the ML model, or both.  
-Example: “I used the rule based model only” or “I compared both models.”
+I used and evaluated both the rule based and ML models.
 
 **Intended purpose:**  
-What is this model trying to do?  
-Example: classify short text messages as moods like positive, negative, neutral, or mixed.
+Classify short, informal text into one of four labels: positive, negative, neutral, or mixed.
 
 **How it works (brief):**  
-For the rule based version, describe the scoring rules you created.  
-For the ML version, describe how training works at a high level (no math needed).
-
-
+Rule based model: preprocess text, match known mood words, apply a scoring rule, then map score/signals to a label.  
+ML model: convert text to bag-of-words features and train logistic regression on labeled examples.
 
 ## 2. Data
 
 **Dataset description:**  
-Summarize how many posts are in `SAMPLE_POSTS` and how you added new ones.
+The dataset contains 14 posts total. I added 8 new posts to the starter set. New posts include slang, emojis, sarcasm, and mixed emotional tone.
 
 **Labeling process:**  
-Explain how you chose labels for your new examples.  
-Mention any posts that were hard to label or could have multiple valid labels.
+Each post has one label in TRUE_LABELS. I used mixed when both positive and negative cues were present.
 
-**Important characteristics of your dataset:**  
-Examples you might include:  
+Hard-to-label examples:
 
-- Contains slang or emojis  
-- Includes sarcasm  
-- Some posts express mixed feelings  
-- Contains short or ambiguous messages
+- Feeling tired but kind of hopeful
+- Coffee spilled on my notes but at least the quiz went good
+- Missed the bus again... love that for me
+
+These examples are ambiguous and could receive different labels from different annotators.
+
+**Important characteristics of your dataset:**
+
+- Contains slang and informal wording
+- Contains emojis and punctuation-heavy style
+- Includes sarcasm and irony
+- Includes mixed-emotion and subtle-tone posts
+- Includes short/ambiguous posts
 
 **Possible issues with the dataset:**  
-Think about imbalance, ambiguity, or missing kinds of language.
+The dataset is very small, contains subjective labels for some posts, and has limited linguistic/cultural coverage.
 
 ## 3. How the Rule Based Model Works (if used)
 
-**Your scoring rules:**  
-Describe the modeling choices you made.  
-Examples:  
+**Your scoring rules:**
 
-- How positive and negative words affect score  
-- Negation rules you added  
-- Weighted words  
-- Emoji handling  
-- Threshold decisions for labels
+Preprocessing:
+
+- Lowercase input text
+- Regex tokenization for words/contractions
+
+Scoring:
+
+- Start at score 0
+- Positive word: +1
+- Negative word: -1
+- Enhancement added: simple negation handling. If the previous token is not, never, no, or ends with n't, sentiment for the current mood word is flipped.
+
+Label mapping:
+
+- If both positive and negative signals appear, return mixed
+- Else score > 0: positive
+- Else score < 0: negative
+- Else: neutral
 
 **Strengths of this approach:**  
-Where does it behave predictably or reasonably well?
+Transparent and easy to debug. Works reasonably for direct sentiment statements.
 
 **Weaknesses of this approach:**  
-Where does it fail?  
-Examples: sarcasm, subtlety, mixed moods, unfamiliar slang.
+Fails on sarcasm, subtle context, and out-of-vocabulary emotional words.
 
 ## 4. How the ML Model Works (if used)
 
 **Features used:**  
-Describe the representation.  
-Example: “Bag of words using CountVectorizer.”
+Bag-of-words features with CountVectorizer.
 
 **Training data:**  
-State that the model trained on `SAMPLE_POSTS` and `TRUE_LABELS`.
+Trained on SAMPLE_POSTS and TRUE_LABELS.
 
 **Training behavior:**  
-Did you observe changes in accuracy when you added more examples or changed labels?
+After dataset expansion, the ML model reached 1.00 accuracy on the same data it trained on, showing strong fit and high sensitivity to provided labels.
 
-**Strengths and weaknesses:**  
-Strengths might include learning patterns automatically.  
-Weaknesses might include overfitting to the training data or picking up spurious cues.
+**Strengths and weaknesses:**
+
+Strengths:
+
+- Learns useful lexical patterns without hand-writing rules
+- Correctly captured several mixed/slang examples in this dataset
+
+Weaknesses:
+
+- Easy to overfit with very small datasets
+- Performance may drop on unseen language
+- Learns label biases from human annotations
 
 ## 5. Evaluation
 
 **How you evaluated the model:**  
-Both versions can be evaluated on the labeled posts in `dataset.py`.  
-Describe what accuracy you observed.
+Both models were evaluated on the labeled posts in dataset.py.
 
-**Examples of correct predictions:**  
-Provide 2 or 3 examples and explain why they were correct.
+- Rule based accuracy: 0.50
+- ML accuracy on training dataset: 1.00
 
-**Examples of incorrect predictions:**  
-Provide 2 or 3 examples and explain why the model made a mistake.  
-If you used both models, show how their failures differed.
+**Examples of correct predictions:**
+
+Rule based:
+
+- I love this class so much -> positive
+- Today was a terrible day -> negative
+- This is fine -> neutral
+
+ML:
+
+- Feeling tired but kind of hopeful -> mixed
+- Group chat is dead and I feel weirdly lonely tonight -> negative
+- Coffee spilled on my notes but at least the quiz went good -> mixed
+
+**Examples of incorrect predictions:**
+
+Rule based errors:
+
+- Feeling tired but kind of hopeful -> predicted negative, true mixed
+  Reason: tired was recognized as negative, but hopeful was not in the positive lexicon.
+
+- Missed the bus again... love that for me -> predicted positive, true negative
+  Reason: literal match on love without sarcasm detection.
+
+- Group chat is dead and I feel weirdly lonely tonight -> predicted neutral, true negative
+  Reason: lonely/dead are not in the negative dictionary.
+
+ML errors on this same split:
+
+- None observed (0 errors), but this was training-set evaluation.
 
 ## 6. Limitations
 
-Describe the most important limitations.  
-Examples:  
-
-- The dataset is small  
-- The model does not generalize to longer posts  
-- It cannot detect sarcasm reliably  
-- It depends heavily on the words you chose or labeled
+- Dataset is small (14 posts)
+- Labels are subjective for ambiguous/sarcastic text
+- Rule based model misses unseen expressions and nuanced phrasing
+- Sarcasm handling is weak
+- ML metric is optimistic because evaluation was not on a held-out test set
 
 ## 7. Ethical Considerations
 
-Discuss any potential impacts of using mood detection in real applications.  
-Examples: 
+Potential risks:
 
-- Misclassifying a message expressing distress  
-- Misinterpreting mood for certain language communities  
-- Privacy considerations if analyzing personal messages
+- Misclassifying distress or negative mood as neutral/positive may cause harm in support contexts
+- Slang, dialect, and culture-specific language may be misinterpreted
+- Personal message analysis introduces privacy and consent concerns
+
+Bias and scope note:
+
+This model is optimized for short, English, informal posts similar to this dataset. It may underperform for other dialects, languages, and communication styles.
 
 ## 8. Ideas for Improvement
 
-List ways to improve either model.  
-Possible directions:  
-
-- Add more labeled data  
-- Use TF IDF instead of CountVectorizer  
-- Add better preprocessing for emojis or slang  
-- Use a small neural network or transformer model  
-- Improve the rule based scoring method  
-- Add a real test set instead of training accuracy only
+- Add more labeled data across broader language communities
+- Expand lexicons for slang, emojis, and multi-word phrases
+- Add phrase-level handling for expressions like no cap and sarcasm cues
+- Evaluate ML with held-out test split or cross-validation
+- Compare CountVectorizer with TF-IDF and n-gram features
+- Report per-label precision/recall in addition to accuracy

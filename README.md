@@ -6,6 +6,10 @@ This lab gives you hands on experience with how basic systems work, where they b
 
 ---
 
+## TF Summary
+
+As you work through this project, keep your focus on understanding how the data and rules you create directly affect what your model predicts — that connection is the heart of everything here. One of the trickiest parts will be designing scoring rules that don't contradict each other, especially when dealing with sarcastic, emotional, or context-heavy posts, so don't get discouraged if your first attempt doesn't work perfectly. If your mood predictions feel off, go back and look at your scoring weights first — that's usually where the issue is hiding. Try to come up with a really diverse set of test cases with your classmates, because the more edge cases you explore together, the better you'll understand why sentiment prediction is harder than it looks. By the end, you should be able to clearly speak to what your system does well and where it falls short — that kind of honest reflection is just as valuable as getting the predictions right.
+
 ## Repo Structure
 
 ```plaintext
@@ -25,15 +29,15 @@ This lab gives you hands on experience with how basic systems work, where they b
 2. Make sure your Python environment is active.
 3. Install dependencies:
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 4. Run the rule-based starter:
 
-    ```bash
-    python main.py
-    ```
+   ```bash
+   python main.py
+   ```
 
 If pieces of the analyzer are not implemented yet, you will see helpful errors that guide you to the TODOs.
 
